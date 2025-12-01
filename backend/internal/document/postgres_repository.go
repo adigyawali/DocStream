@@ -192,12 +192,15 @@ func (r *PostgresRepository) UpdateDocument(ctx context.Context, doc Document) e
 	}
 	defer tx.Rollback(ctx)
 
-	_, err = tx.Exec(ctx, `
+	ct, err := tx.Exec(ctx, `
 		UPDATE documents SET title=$1, content=$2, version=$3, updated_at=$4
 		WHERE id=$5 AND tenant_id=$6
 	`, doc.Title, doc.Content, doc.Version, doc.UpdatedAt, doc.ID, doc.TenantID)
 	if err != nil {
 		return err
+	}
+	if ct.RowsAffected() == 0 {
+		return fmt.Errorf("document not found or no change")
 	}
 
 	// Replace Permissions
@@ -239,7 +242,7 @@ func (r *PostgresRepository) ListDocuments(ctx context.Context, tenantID string)
 	}
 	defer rows.Close()
 
-	var docs []Document
+	docs := []Document{}
 	for rows.Next() {
 		var doc Document
 		if err := rows.Scan(&doc.ID, &doc.TenantID, &doc.Title, &doc.Content, &doc.OwnerID, &doc.Version, &doc.CreatedAt, &doc.UpdatedAt); err != nil {
@@ -279,7 +282,7 @@ func (r *PostgresRepository) ListVersions(ctx context.Context, tenantID, documen
 	}
 	defer rows.Close()
 
-	var versions []DocumentVersion
+	versions := []DocumentVersion{}
 	for rows.Next() {
 		var v DocumentVersion
 		if err := rows.Scan(&v.ID, &v.DocumentID, &v.TenantID, &v.AuthorID, &v.Sequence, &v.Content, &v.Label, &v.CreatedAt); err != nil {

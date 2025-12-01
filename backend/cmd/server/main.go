@@ -54,7 +54,7 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "DocStream Backend is Running with Postgres!")
 	})
-	mux.Handle("/api/", api.Routes())
+	mux.Handle("/api/", http.StripPrefix("/api", api))
 	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		// TODO: Add token validation for WS
 		hub.ServeWS(w, r)

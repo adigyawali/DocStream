@@ -33,12 +33,17 @@ export function SharePanel({ shareLinks, onCreateLink, onSetPermission }: Props)
             <button onClick={() => onCreateLink(level)}>Generate link</button>
           </div>
           <div className="share-links">
-            {shareLinks.map((link) => (
-              <div key={link.id} className="share-chip">
-                <span className="pill">{link.level}</span>
-                <code>{link.token}</code>
-              </div>
-            ))}
+            {shareLinks.map((link) => {
+              const url = `${window.location.origin}?docId=${link.documentId}&token=${link.token}`;
+              return (
+                <div key={link.id} className="share-chip">
+                  <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", flex: 1 }}>
+                    <span className="pill" style={{ marginRight: "8px" }}>{link.level}</span>
+                    <a href={url} target="_blank" rel="noreferrer">{url}</a>
+                  </div>
+                </div>
+              );
+            })}
             {shareLinks.length === 0 && <div className="empty">No share links yet.</div>}
           </div>
         </div>

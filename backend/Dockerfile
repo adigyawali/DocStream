@@ -1,5 +1,5 @@
-# Build Stage - NOTE THE 1.22 VERSION TAG
-FROM golang:1.22-alpine AS builder
+# Build Stage - NOTE THE 1.24 VERSION TAG
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 

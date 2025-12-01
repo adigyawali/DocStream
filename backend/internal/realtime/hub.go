@@ -1,10 +1,12 @@
 package realtime
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"docStream/backend/internal/document"
 	"github.com/gorilla/websocket"
@@ -79,7 +81,11 @@ func (r *Room) handleEvent(evt inboundEvent) {
 }
 
 func (r *Room) handleOperation(evt inboundEvent) {
-	doc, op, version, err := r.service.ApplyOperation(evt.client.ctx, document.ApplyOperationInput{
+	// Use a short timeout for operations to prevent locking up resources
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	doc, op, version, err := r.service.ApplyOperation(ctx, document.ApplyOperationInput{
 		TenantID:   r.tenantID,
 		DocumentID: r.documentID,
 		UserID:     evt.message.UserID,
@@ -183,7 +189,7 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 		conn:   conn,
 		send:   make(chan []byte, 256),
 		userID: userID,
-		ctx:    r.Context(),
+		ctx:    context.Background(), // Use background context to avoid cancellation on handler return
 	}
 	room.register <- client
 

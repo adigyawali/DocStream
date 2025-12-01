@@ -21,6 +21,9 @@ FROM nginx:alpine
 # Clean the default Nginx static files
 RUN rm -rf /usr/share/nginx/html/*
 
+# Copy custom Nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Copy the built React files from the builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 

@@ -1,7 +1,10 @@
 import type { AccessLevel, CollabMessage, Doc, DocumentVersion, ShareLink } from "../types";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8080";
-const WS_BASE = import.meta.env.VITE_WS_BASE ?? "ws://localhost:8080";
+// Use relative path so Nginx can proxy to backend
+const API_BASE = import.meta.env.VITE_API_BASE ?? "";
+// Infer WebSocket URL from current location
+const WS_BASE = import.meta.env.VITE_WS_BASE ?? 
+  ((window.location.protocol === "https:" ? "wss://" : "ws://") + window.location.host);
 
 let authToken: string | null = null;
 
@@ -28,7 +31,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const text = await res.text();
     throw new Error(text || res.statusText);
   }
-  return res.json();
+  // Some endpoints (e.g., signup) return an empty body with 201/204.
+  const raw = await res.text();
+  if (!raw) {
+    return undefined as T;
+  }
+  return JSON.parse(raw) as T;
 }
 
 export async function signup(email: string, password: string): Promise<void> {

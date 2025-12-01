@@ -8,6 +8,7 @@ export interface Permission {
 
 export interface ShareLink {
   id: string;
+  documentId: string;
   token: string;
   level: AccessLevel;
   createdAt: string;

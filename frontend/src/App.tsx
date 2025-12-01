@@ -27,9 +27,17 @@ function App() {
   const [userId, setUserId] = useState<string>(localStorage.getItem("userId") || "");
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
 
-  const [view, setView] = useState<"list" | "editor">("list");
+  // Initialize state from URL
+  const [selectedDocId, setSelectedDocId] = useState<string | undefined>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("docId") || undefined;
+  });
+
+  const [view, setView] = useState<"list" | "editor">(() => {
+    return new URLSearchParams(window.location.search).get("docId") ? "editor" : "list";
+  });
+
   const [documents, setDocuments] = useState<Doc[]>([]);
-  const [selectedDocId, setSelectedDocId] = useState<string>();
   const [content, setContent] = useState("");
   const [versions, setVersions] = useState<DocumentVersion[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,6 +45,24 @@ function App() {
   useEffect(() => {
     setAuthToken(token);
   }, [token]);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const docId = params.get("docId");
+      if (docId) {
+        setSelectedDocId(docId);
+        setView("editor");
+      } else {
+        setSelectedDocId(undefined);
+        setView("list");
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const handleLogin = (newToken: string, newUserId: string) => {
     localStorage.setItem("token", newToken);
@@ -60,7 +86,7 @@ function App() {
   const { status, lastMessage, sendOperation } = useRealtimeCollaboration({
     tenantId,
     docId: selectedDocId,
-    userId, // Now real user ID
+    userId, 
     onRemoteContent: setContent,
   });
 
@@ -68,7 +94,7 @@ function App() {
   useEffect(() => {
     if (!token) return;
     listDocuments(tenantId)
-      .then((docs) => setDocuments(docs))
+      .then((docs) => setDocuments(docs || []))
       .catch((err) => {
         console.error(err);
         if (err.message.includes("Unauthorized")) handleLogout();
@@ -77,25 +103,24 @@ function App() {
 
   useEffect(() => {
     if (!selectedDocId || !token) return;
+    setContent(""); // Clear content while loading
     getDocument(tenantId, selectedDocId)
       .then((doc) => {
         setContent(doc.content);
       })
       .catch(() => setContent(""));
 
-    listVersions(tenantId, selectedDocId).then(setVersions).catch(() => setVersions([]));
+    listVersions(tenantId, selectedDocId).then((v) => setVersions(v || [])).catch(() => setVersions([]));
   }, [selectedDocId, token]);
 
   const handleCreateDocument = async (title: string) => {
     try {
       const doc = await createDocument(tenantId, {
         title,
-        content: "Welcome to DocStream — start collaborating!",
+        content: "",
       });
       setDocuments((prev) => [...prev, doc]);
-      setSelectedDocId(doc.id);
-      setContent(doc.content);
-      setView("editor");
+      handleSelectDocument(doc.id);
     } catch (err) {
       console.error(err);
     }
@@ -104,12 +129,14 @@ function App() {
   const handleSelectDocument = (id: string) => {
     setSelectedDocId(id);
     setView("editor");
+    window.history.pushState({}, "", `?docId=${id}`);
   };
 
   const handleBack = () => {
     setView("list");
     setSelectedDocId(undefined);
     setIsMenuOpen(false);
+    window.history.pushState({}, "", window.location.pathname);
   };
 
   const handleContentChange = (next: string) => {
@@ -194,6 +221,7 @@ function App() {
           </button>
           <div className="grid" style={{ gridTemplateColumns: "1fr" }}>
             <DocumentEditor
+              key={selectedDocId}
               title={selectedDoc?.title}
               content={content}
               onChange={handleContentChange}

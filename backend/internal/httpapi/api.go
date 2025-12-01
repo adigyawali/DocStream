@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -23,32 +24,16 @@ func New(docs *document.Service, auth *auth.Service) *API {
 	return &API{docs: docs, auth: auth}
 }
 
-// Routes returns an http.Handler with all API endpoints mounted.
-func (a *API) Routes() http.Handler {
-	mux := http.NewServeMux()
-	mux.Handle("/api/", a)
-	return mux
-}
-
 func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// CORS headers (simple version)
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
+	// Logging for debugging
+	fmt.Printf("API Request: %s %s\n", r.Method, r.URL.Path)
 
-	path := strings.Trim(r.URL.Path, "/")
-	parts := strings.Split(path, "/")
-
-	// Auth routes
-	if len(parts) == 2 && parts[1] == "signup" && r.Method == http.MethodPost {
+	// Auth routes (strict matching because prefix is stripped)
+	if r.URL.Path == "/signup" && r.Method == http.MethodPost {
 		a.handleSignup(w, r)
 		return
 	}
-	if len(parts) == 2 && parts[1] == "login" && r.Method == http.MethodPost {
+	if r.URL.Path == "/login" && r.Method == http.MethodPost {
 		a.handleLogin(w, r)
 		return
 	}
@@ -71,14 +56,19 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(r.Context(), "userID", userID)
 	r = r.WithContext(ctx)
 
-	// Expected: /api/tenants/{tenantId}/docs...
-	if len(parts) < 3 || parts[0] != "api" || parts[1] != "tenants" {
+	// Path parsing for resource routes
+	path := strings.Trim(r.URL.Path, "/")
+	parts := strings.Split(path, "/")
+
+	// Expected: tenants/{tenantId}/docs...
+	// (Note: "api" prefix is stripped by main.go)
+	if len(parts) < 2 || parts[0] != "tenants" {
 		http.NotFound(w, r)
 		return
 	}
-	tenantID := parts[2]
+	tenantID := parts[1]
 
-	if len(parts) == 4 && parts[3] == "docs" {
+	if len(parts) == 3 && parts[2] == "docs" {
 		switch r.Method {
 		case http.MethodGet:
 			a.listDocuments(w, r, tenantID)
@@ -90,9 +80,9 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(parts) >= 5 && parts[3] == "docs" {
-		docID := parts[4]
-		if len(parts) == 5 {
+	if len(parts) >= 4 && parts[2] == "docs" {
+		docID := parts[3]
+		if len(parts) == 4 {
 			switch r.Method {
 			case http.MethodGet:
 				a.getDocument(w, r, tenantID, docID)
@@ -102,20 +92,20 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if len(parts) == 6 && parts[5] == "share" && r.Method == http.MethodPost {
+		if len(parts) == 5 && parts[4] == "share" && r.Method == http.MethodPost {
 			a.createShareLink(w, r, tenantID, docID)
 			return
 		}
-		if len(parts) == 6 && parts[5] == "permissions" && r.Method == http.MethodPost {
+		if len(parts) == 5 && parts[4] == "permissions" && r.Method == http.MethodPost {
 			a.setPermission(w, r, tenantID, docID)
 			return
 		}
-		if len(parts) == 6 && parts[5] == "versions" && r.Method == http.MethodGet {
+		if len(parts) == 5 && parts[4] == "versions" && r.Method == http.MethodGet {
 			a.listVersions(w, r, tenantID, docID)
 			return
 		}
-		if len(parts) == 8 && parts[5] == "versions" && parts[7] == "revert" && r.Method == http.MethodPost {
-			versionID := parts[6]
+		if len(parts) == 7 && parts[4] == "versions" && parts[6] == "revert" && r.Method == http.MethodPost {
+			versionID := parts[5]
 			a.revertVersion(w, r, tenantID, docID, versionID)
 			return
 		}
