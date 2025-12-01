@@ -14,7 +14,7 @@ DocStream is a real-time collaborative document editing platform designed for te
       <sub>Share menu: set view/comment/edit access or create expiring links.</sub>
     </td>
   </tr>
-</table>)
+</table>
 
 ## System Overview
 
