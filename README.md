@@ -8,6 +8,19 @@ DocStream is a real-time collaborative document editing platform designed for te
   </video>
 </p>
 
+<table>
+  <tr>
+    <td align="center">
+      <img src="images/workspaceImage.png" alt="Workspace" width="420"/><br/>
+      <sub>Workspace: organize docs and jump into live editing.</sub>
+    </td>
+    <td align="center">
+      <img src="images/shareMenu.png" alt="Share menu" width="420"/><br/>
+      <sub>Share menu: set view/comment/edit access or create expiring links.</sub>
+    </td>
+  </tr>
+</table>
+
 ## System Overview
 
 The project is built to explore real-time synchronization patterns and efficient full-stack architecture:
