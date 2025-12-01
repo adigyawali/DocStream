@@ -52,6 +52,3 @@ The project is built to explore real-time synchronization patterns and efficient
 - **Backend:** Written in Go (`/backend`). Standard `go run` or `air` for hot reload if configured.
 - **Frontend:** React application (`/frontend`). Run `npm run dev` for the Vite development server.
 
-## Deployment
-
-The application is designed for cloud deployment, with an initial target of Microsoft Azure. This involves container orchestration services for the backend and frontend (e.g., Azure Kubernetes Service or Azure Container Apps), and Azure Database for PostgreSQL for persistent storage.
