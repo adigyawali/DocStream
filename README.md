@@ -2,20 +2,6 @@
 
 DocStream is a real-time collaborative document editing platform designed for teams to work together on shared text simultaneously. It supports multi-user editing, live presence indicators, and secure sharing controls within isolated workspaces.
 
-https://github.com/user-attachments/assets/7ed9d6f9-6cc9-4311-9bf8-a422e78a6369
-
-<table>
-  <tr>
-    <td align="center">
-      <img src="images/workspaceImage.png" alt="Workspace" width="420"/><br/>
-      <sub>Workspace: organize docs and jump into live editing.</sub>
-    </td>
-    <td align="center">
-      <img src="images/shareMenu.png" alt="Share menu" width="420"/><br/>
-      <sub>Share menu: set view/comment/edit access or create expiring links.</sub>
-    </td>
-  </tr>
-</table>](https://github.com/user-attachments/assets/7ed9d6f9-6cc9-4311-9bf8-a422e78a6369
 
 <table>
   <tr>
