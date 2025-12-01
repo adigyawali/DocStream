@@ -1,8 +1,19 @@
 services:
+  # 1. Frontend Service (React + Nginx)
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"  # Access the app at localhost:3000
+    depends_on:
+      - backend    # Wait for backend to start
+    networks:
+      - docstream-network
+
+  # 2. Backend Service (Go)
   backend:
     build: ./backend
     ports:
-      - "8080:8080"
+      - "8080:8080" # Access the API at localhost:8080
     depends_on:
       - db
       - redis
@@ -12,7 +23,10 @@ services:
       - DB_PASSWORD=password
       - DB_NAME=docstream
       - REDIS_ADDR=redis:6379
+    networks:
+      - docstream-network
 
+  # 3. Database (PostgreSQL)
   db:
     image: postgres:15-alpine
     environment:
@@ -23,11 +37,21 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - docstream-network
 
+  # 4. Cache (Redis)
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    networks:
+      - docstream-network
+
+# Define a custom network so containers can talk to each other by name
+networks:
+  docstream-network:
+    driver: bridge
 
 volumes:
   postgres_data:
