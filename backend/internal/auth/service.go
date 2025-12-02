@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"os"
 	"time"
 
 	"docStream/backend/internal/document"
@@ -11,7 +12,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var SecretKey = []byte("super-secret-key-change-me") // In prod, read from env
+var secret = os.Getenv("SECRET_KEY")
+var SecretKey = []byte(secret) // In prod, read from env
 
 type Service struct {
 	repo document.Repository
