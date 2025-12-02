@@ -24,9 +24,9 @@ https://github.com/user-attachments/assets/dd5b5e22-645e-4231-84a0-583f936165f1
 
 The project is built to explore real-time synchronization patterns and efficient full-stack architecture:
 
-- **Backend (Go):** A high-performance server handles WebSocket connections for real-time events. It manages a "Hub" and "Room" pattern to broadcast operations (typing, cursor movements) to connected clients efficiently. It ensures concurrency safety using channels and mutexes rather than heavy locking on the database.
-- **Frontend (React + Vite):** The client maintains a local state of the document and synchronizes with the server via a custom hook. It handles optimistic UI updates to ensure typing feels instant, even when network latency varies.
-- **Data Storage (Postgres):** While the editing session is in-memory and ephemeral for speed, document snapshots and version history are reliably persisted to PostgreSQL.
+- **Backend (Go):** A server handles WebSocket connections for real-time events. Managing a Hub pattern to broadcast operations (typing, cursor movements) to connected clients efficiently.
+- **Frontend (React + Vite):** The client maintains a local state of the document and synchronizes with the server via a custom hook. It handles optimistic UI updates to ensure tpying is instant, even when network latency varies.
+- **Data Storage (Postgres):** 
 - **Containerization:** The entire stack (Backend, Frontend, Database) is containerized with Docker for consistent deployment and easy local setup.
 
 ## Key Features
